@@ -1,0 +1,29 @@
+#!/bin/bash
+
+usage() {
+	echo "usage:                                  "
+	echo "       cauth token code                 "
+  echo "       cauth token info                 "
+}
+
+cmd_code(){
+  code=$1; shift
+  result=$(
+    curl -s -X POST $CAUTH_TOKEN_URL \
+            -F grant_type=$CAUTH_GRANT_TYPE \
+            -F client_id=$CAUTH_CLIENT_ID \
+            -F client_secret=$CAUTH_CLIENT_SECRET \
+            -F code=$code \
+            -F redirect_uri=$CAUTH_CALLBACK
+  )
+  echo $result
+}
+
+cmd_info() {
+  token=$1; shift
+  result=$(
+    curl -s -X GET $CAUTH_TOKEN_INFO_URL \
+    -H "Authorization: Bearer $token" \
+  )
+  echo $result
+}

@@ -1,0 +1,62 @@
+#!/bin/bash
+
+export CAUTH_CONFIG_ORIG="$CAUTH_ROOT/config/orig"
+
+usage() {
+	echo "usage:                                                "
+	echo "       cauth config site <site uri>                   "
+	echo "       cauth config client <client_id> <client_secret>"
+	echo "       cauth config callback <redirect uri>           "
+  echo "       cauth config list                              "
+	echo "       cauth config clear                             "
+}
+
+init () {
+  if [ ! -e "$CAUTH_CONFIG" ]; then
+    cp $CAUTH_CONFIG_ORIG $CAUTH_CONFIG
+  fi
+}
+
+cmd_site () {
+  init
+  site=$1; shift
+  sed -i -e "s/CAUTH_SITE=.*/CAUTH_SITE=$site/g" $CAUTH_CONFIG
+  echo "set site: $site"
+}
+cmd_client () {
+  init
+  id=$1; shift
+  secret=$1; shift
+  sed -i -e "s/CAUTH_CLIENT_ID=.*/CAUTH_CLIENT_ID=$id/g" $CAUTH_CONFIG
+  sed -i -e "s/CAUTH_CLIENT_SECRET=.*/CAUTH_CLIENT_SECRET=$secret/g" $CAUTH_CONFIG
+  echo "set client id: $id"
+  echo "set client secret: $secret"
+}
+
+cmd_callback () {
+  init
+  callback=$1; shift
+  sed -i -e "s/CAUTH_CALLBACK=.*/CAUTH_CALLBACK=$callback/g" $CAUTH_CONFIG
+  echo "set callback uri: $callback"
+}
+
+cmd_list () {
+  init
+  echo "SITE URI      : $CAUTH_SITE"
+  echo "CLIENT ID     : $CAUTH_CLIENT_ID"
+  echo "CLIENT SECRET : $CAUTH_CLIENT_SECRET"
+  echo "CALLBACK URI  : $CAUTH_CALLBACK"
+}
+
+cmd_clear () {
+  init
+  sed -i -e "s/CAUTH_SITE=.*/CAUTH_SITE=/g" $CAUTH_CONFIG
+  sed -i -e "s/CAUTH_CLIENT_ID=.*/CAUTH_CLIENT_ID=/g" $CAUTH_CONFIG
+  sed -i -e "s/CAUTH_CLIENT_SECRET=.*/CAUTH_CLIENT_SECRET=/g" $CAUTH_CONFIG
+  sed -i -e "s/CAUTH_CALLBACK=.*/CAUTH_CALLBACK=/g" $CAUTH_CONFIG
+  echo "clear config"
+}
+
+cmd_help () {
+  usage
+}

@@ -1,0 +1,56 @@
+#!/bin/bash
+
+export CAUTH_ROOT=$(cd $(dirname $0) && cd .. && pwd)
+export CAUTH_LIB="$CAUTH_ROOT/lib"
+export CAUTH_CONFIG="$CAUTH_ROOT/config/default"
+export CAUTH_COOKIE="$CAUTH_ROOT/cookies/default"
+export CAUTH_VERSION="$CAUTH_ROOT/VERSION"
+. $CAUTH_CONFIG
+
+usage() {
+	echo "usage: cauth <subcommand>"
+	echo
+	echo "Available subcommands are:"
+	echo "   config    Configuration Authorization Server"
+	echo "   sign      Sign Authorization Server"
+	echo "   grant     Get Grant Code"
+	echo "   token     Get Access Token"
+	echo "   revoke    Revoke Access Token"
+	echo "   owner     Get resource owner information"
+	echo "   version   Shows version information."
+	echo
+	echo "Try 'cauth <subcommand> help' for details."
+}
+
+main () {
+
+	if [ $# -lt 1 ]; then
+		usage
+		exit 1
+	fi
+
+	SUBCOMMAND=$1; shift
+
+	if [ ! -e "$CAUTH_LIB/cauth-$SUBCOMMAND" ]; then
+		usage
+	  exit 1
+	fi
+
+	# load sub command
+	. "$CAUTH_LIB/cauth-$SUBCOMMAND"
+
+	# run command
+	SUBACTION="default"
+	if [ "$1" != "" ] && { ! echo "$1" | grep -q "^-"; } then
+		SUBACTION="$1"; shift
+	fi
+	if ! type "cmd_$SUBACTION" >/dev/null 2>&1; then
+		warn "Unknown subcommand: '$SUBACTION'"
+		usage
+		exit 1
+	fi
+
+	cmd_$SUBACTION "$@"
+}
+
+main "$@"

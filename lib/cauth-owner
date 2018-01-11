@@ -1,0 +1,14 @@
+#!/bin/bash
+
+usage() {
+	echo "usage: cauth owner info <token>"
+}
+
+cmd_info() {
+  token=$1; shift
+  result=$(
+    curl -s -X GET $CAUTH_OWNER_INFO_URL \
+    -H "Authorization: Bearer $token" \
+  )
+  echo $result
+}

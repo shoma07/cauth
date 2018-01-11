@@ -1,0 +1,47 @@
+#!/bin/bash
+
+usage() {
+	echo "usage:                                  "
+	echo "       cauth sign in <email>  <password>"
+	echo "       cauth sign out                   "
+}
+
+cmd_in () {
+  email=$1; shift
+  password=$1; shift
+  csrf_tag=$(curl -s $CAUTH_SIGNIN_URL -c $CAUTH_COOKIE | grep csrf-token)
+  csrf_token=$(echo $csrf_tag | grep -o '[a-zA-Z0-9=/\+]\{88\}')
+  http_status=$(
+    curl -s -X POST $CAUTH_SIGNIN_URL \
+            -H "X-CSRF-TOKEN: $csrf_token" \
+            -F user[email]=$email \
+            -F user[password]=$password \
+            -b $CAUTH_COOKIE \
+            -c $CAUTH_COOKIE \
+            -o /dev/null \
+            -w '%{http_code}\n'
+  )
+  if [ $http_status = "302" ]; then
+    echo "Success"
+  else
+    echo "False"
+  fi
+}
+
+cmd_out () {
+  csrf_tag=$(curl -s $CAUTH_SIGNIN_URL -c $CAUTH_COOKIE | grep csrf-token)
+  csrf_token=$(echo $csrf_tag | grep -o '[a-zA-Z0-9=/\+]\{88\}')
+  http_status=$(
+    curl -s -X DELETE $CAUTH_SIGNOUT_URL \
+         -H "X-CSRF-TOKEN: $csrf_token" \
+         -b $CAUTH_COOKIE \
+         -o /dev/null \
+         -w '%{http_code}\n'
+  )
+  if [ $http_status = "204" ]; then
+    echo "Success"
+    rm $CAUTH_COOKIE
+  else
+    echo "False"
+  fi
+}

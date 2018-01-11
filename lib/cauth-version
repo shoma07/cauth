@@ -1,0 +1,9 @@
+#!/bin/bash
+
+usage() {
+	echo "usage: cauth version"
+}
+
+cmd_default() {
+	echo "cauth version: $(cat $CAUTH_VERSION)"
+}

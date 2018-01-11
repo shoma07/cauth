@@ -1,0 +1,52 @@
+#!/bin/bash
+
+usage() {
+	echo "usage:                                  "
+	echo "       cauth authorize grant            "
+	echo "       cauth authorize deprive          "
+}
+
+cmd_grant () {
+  new_authorize_html="
+    curl -s -X GET $CAUTH_NEW_AUTHORIZE_URL \
+    -b $CAUTH_COOKIE \
+    -c $CAUTH_COOKIE
+  "
+  http_status=$($new_authorize_html -o /dev/null -w '%{http_code}')
+  authorization_code=""
+  if [ $http_status = "302" ]; then
+    authorization_code=$(
+      $new_authorize_html | grep -o '[a-z0-9]\{64\}'
+    )
+  fi
+  if [ $http_status = "200" ]; then
+    csrf_token=$(
+      $new_authorize_html | grep csrf-token | grep -o '[a-zA-Z0-9=/\+]\{88\}'
+    )
+    authorize_html=$(
+      curl -s -X POST $CAUTH_AUTHORIZE_URL \
+           -F authenticity_token=$csrf_token \
+           -F response_type=$CAUTH_RESPONSE_TYPE \
+           -F client_id=$CAUTH_CLIENT_ID \
+           -F redirect_uri=$CAUTH_CALLBACK \
+           -b $CAUTH_COOKIE \
+           -c $CAUTH_COOKIE
+    )
+    authorization_code=$(echo $authorize_html | grep -o '[a-z0-9]\{64\}')
+  fi
+  echo $authorization_code
+}
+
+cmd_deprive () {
+    csrf_tag=$(curl -s $CAUTH_AUTHORIZED_APPLICATIONS_URL -b $CAUTH_COOKIE -c $CAUTH_COOKIE | grep csrf-token)
+    csrf_token=$(echo $csrf_tag | grep -o '[a-zA-Z0-9=/\+]\{88\}')
+    result=$(curl -s -X DELETE $CAUTH_AUTHORIZE_URL \
+         -F authenticity_token=$csrf_token \
+         -F response_type=$CAUTH_RESPONSE_TYPE \
+         -F client_id=$CAUTH_CLIENT_ID \
+         -F redirect_uri=$CAUTH_CALLBACK \
+         -b $CAUTH_COOKIE \
+         -c $CAUTH_COOKIE
+    )
+    echo $result
+}

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+usage() {
+	echo "usage:                                  "
+	echo "       cauth revoke token               "
+}
+
+cmd_token(){
+  token=$1; shift
+  result=$(
+    curl -s -X POST $CAUTH_REVOKE_URL \
+            -F client_id=$CAUTH_CLIENT_ID \
+            -F client_secret=$CAUTH_CLIENT_SECRET \
+            -F token=$token \
+            -F redirect_uri=$CAUTH_CALLBACK
+  )
+  echo $result
+}
